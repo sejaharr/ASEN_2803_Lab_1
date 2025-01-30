@@ -1,0 +1,89 @@
+clear; clc; close all;
+
+% Constants
+g = 9.81;        % Gravity (m/s^2)
+h_init = 125;    % Initial height (m)
+
+%% ADJUSTABLE PARAMETERS 
+r_corkscrew = 12;        % Radius of corkscrew (m)
+num_turns = 3;           % Number of full corkscrew rotations
+descent_per_turn = 6;    % Height drop per turn (m)
+points = 500;           % Number of points along corkscrew
+
+% Speed function based on energy conservation
+speed = @(h) sqrt(2 * g * (h_init - h));  
+
+%% GENERATE CORKSCREW PATH 
+t_cork = linspace(0, 2*pi*num_turns, points);  
+x_cork = r_corkscrew * cos(t_cork);           
+y_cork = r_corkscrew * sin(t_cork);            
+z_cork = linspace(h_init, h_init - num_turns * descent_per_turn, points);  
+
+% Compute velocity along corkscrew
+v_cork = speed(z_cork);
+v_cork_norm = v_cork / max(v_cork);  % Normalize velocity (0 to 1 range)
+
+% Compute lateral G-forces from centripetal acceleration
+G_cork_lateral = v_cork.^2 ./ (r_corkscrew * g);
+G_cork_total = sqrt(G_cork_lateral.^2 + 1);  
+
+%% CALCULATE TRACK LENGTH 
+dx_dt = -r_corkscrew * sin(t_cork);
+dy_dt = r_corkscrew * cos(t_cork);
+dz_dt = gradient(z_cork, t_cork); % Numerical derivative - searched up 
+
+% Compute differential arc length (ds)
+ds = sqrt(dx_dt.^2 + dy_dt.^2 + dz_dt.^2);
+
+% Integrate arc length numerically
+s_cork = cumtrapz(t_cork, ds);  % Cumulative length at each point
+total_track_length = s_cork(end);  % Total track length
+fprintf('Total Track Length: %.2f meters\n', total_track_length);
+
+%% FIND MAX G-FORCE 
+max_G = max(G_cork_total);
+fprintf('Maximum G-Force in the Corkscrew: %.2f G\n', max_G);
+
+%% PLOT 3D CORKSCREW COLORED BY VELOCITY - USED GPT
+figure(1); 
+clf;
+hold on;
+
+% Use scatter3 to color the track by velocity
+scatter3(x_cork, y_cork, z_cork, 10, v_cork, 'filled');  
+c = colorbar;
+c.Label.String = 'Velocity (m/s)';  
+colormap jet;
+
+% Title & Labels
+title('3D Corkscrew Roller Coaster - Colored by Velocity');
+xlabel('X (m)'); ylabel('Y (m)'); zlabel('Height (m)');
+grid on;
+
+% Ensure equal scaling for proper 3D perspective
+axis equal;
+view(3); % Set to 3D view explicitly
+rotate3d on; % Enable mouse rotation
+
+% Add moving point
+moving_point = plot3(x_cork(1), y_cork(1), z_cork(1), 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r');
+
+%% ANIMATE MOVING POINT WITH SPEED BASED ON VELOCITY
+min_pause = 0.002;  % Minimum pause time (fastest motion)
+max_pause = 0.02;   % Maximum pause time (slowest motion)
+
+for i = 1:points
+    set(moving_point, 'XData', x_cork(i), 'YData', y_cork(i), 'ZData', z_cork(i));
+    
+    % Adjust animation speed based on velocity
+    pause_time = max_pause - (max_pause - min_pause) * v_cork_norm(i);
+    pause(pause_time);
+end
+
+%% PLOT G-FORCES VS. TRACK LENGTH
+figure(2);
+clf;
+plot(s_cork, G_cork_total, 'r', 'LineWidth', 1.5);
+xlabel('Track Length (m)'); ylabel('G-Forces');
+title('G-Forces Along Corkscrew');
+grid on;
