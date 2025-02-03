@@ -1,0 +1,65 @@
+clear;
+clc;
+close all;
+
+%% PARAMETERS
+R = 2; % Loop radius
+theta_0 = 45; % Initial launch angle in degrees
+v_0 = 12; % Initial velocity in m/s
+g = 9.81; % Gravity (m/s^2)
+
+% Convert angle to radians
+theta_0 = deg2rad(theta_0);
+
+%% LOOP SECTION (Eighth-circle)
+t_loop = linspace(3*pi/2, 7*pi/4, 50); % 1/8th of a circular loop
+x_loop = R * (cos(t_loop)); % Circular motion in x
+z_loop = R * sin(t_loop); % Circular motion in z
+y_loop = zeros(size(t_loop)); % Keep it in x-z plane
+
+% Compute loop exit velocity (45° angle)
+v_exit = sqrt(v_0^2 + 2 * g * (-z_loop(end)));
+vx_exit = v_exit * cos(pi/4);
+vz_exit = v_exit * sin(pi/4);
+
+% Tangential velocity for the loop
+v_tangent_loop = R * ones(size(t_loop)); 
+
+%% PROJECTILE SECTION
+t_flight = 2 * v_0 * sin(theta_0) / g; 
+t_parabola = linspace(0, t_flight, 100);
+
+% Initial positions (continuity with loop exit)
+x0 = x_loop(end);
+z0 = z_loop(end);
+
+% Compute projectile motion
+x_parabola = x0 + vx_exit * t_parabola;
+z_parabola = z0 + vz_exit * t_parabola - 0.5 * g * t_parabola.^2;
+y_parabola = zeros(size(t_parabola));
+
+% Compute tangential velocity for projectile
+vx_parabola = vx_exit * ones(size(t_parabola));
+vz_parabola = vz_exit - g * t_parabola;
+v_tangent_parabola = sqrt(vx_parabola.^2 + vz_parabola.^2);
+
+%% CONCATENATE DATA FOR PLOTTING
+x_full = [x_loop, x_parabola];
+y_full = [y_loop, y_parabola];
+z_full = [z_loop, z_parabola];
+v_tangent_full = [v_tangent_loop, v_tangent_parabola];
+
+%% PLOT
+figure;
+scatter3(x_full, y_full, z_full, 20, v_tangent_full, 'filled'); % Color by velocity magnitude
+colormap(jet); % Jet colormap for smooth gradient
+colorbar; % Show velocity scale
+grid on;
+
+% Labels and title
+xlabel('x (m)');
+ylabel('y (m)');
+zlabel('z (m)');
+title('Smooth 3D Loop-to-Projectile Transition with Velocity Gradient');
+axis equal;
+view(3);
