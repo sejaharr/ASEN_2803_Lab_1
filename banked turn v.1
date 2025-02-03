@@ -1,0 +1,210 @@
+%% Pilot Simulator: 3D Track Animation & Normal Force vs. Distance Plot
+clear; clc; close all;
+
+%% Constants and Parameters
+g = 9.81;            % gravitational acceleration [m/s^2]
+h_init = 125;        % initial height [m]
+n = 1000;            % number of points along the track
+theta = 10;
+
+%% Define Track Function
+% (Uncomment the desired track function.)
+ r_func = @(t) [12*cos(t); 12*sin(t); 125 - 5*t/(2*pi)];           % Helix
+% r_func = @(t) [10*sin(t); zeros(size(t)); 125 - 10*cos(t)];         % Vertical Loop
+% r_func = @(t) [t; zeros(size(t)); 125 - 0.5*(t - 10).^2];           % Parabola
+% r_func = @(t) [t; zeros(size(t)); 125 - 0.2*t];                     % Incline Slope
+% r_func = @(t) [t; zeros(size(t)); 125 + 5*sin(0.5*t)];              % Wave
+
+t_values = linspace(0, 6*pi, n); % t vector
+
+% bank angle (in degrees) at each point
+%beta_values = theta * ones(size(t_values)); % constant bank angle
+beta_values = linspace(0,theta,n); % gradual banking angle
+
+%% Compute G-Forces and Force Directions
+[s_track, G_force, x_t, y_t, z_t, v_t, N_dir, Fc_dir] = computeGForces(r_func, h_init, n, t_values, beta_values);
+
+%% Determine Axis Limits (with a margin) to Fit the Entire Track
+margin = 5;
+x_min = min(x_t) - margin;  x_max = max(x_t) + margin;
+y_min = min(y_t) - margin;  y_max = max(y_t) + margin;
+z_min = min(z_t) - margin;  z_max = max(z_t) + margin;
+
+%% Create 3D Track Visualization Figure
+figure(1);
+hold on;
+% Plot the track as a scatter (colored by velocity)
+scatter3(x_t, y_t, z_t, 10, v_t, 'filled');
+cb = colorbar;
+cb.Label.String = 'Velocity (m/s)';
+colormap jet;
+
+% Set axes so the entire track is visible
+axis([x_min x_max y_min y_max z_min z_max]);
+axis equal; grid on;
+xlabel('X (m)'); ylabel('Y (m)'); zlabel('Z (m)');
+title('3D Track with Force Vectors');
+view(3);
+rotate3d on;
+
+% Plot the moving point representing the train
+moving_point = plot3(x_t(1), y_t(1), z_t(1), 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r');
+
+% Display the current G-force near the train
+g_text = text(x_t(1), y_t(1), z_t(1)+2, sprintf('G: %.2f', G_force(1)), 'FontSize', 12, 'Color', 'k');
+
+% Plot force vectors: Normal (blue arrow) and Centripetal (red arrow)
+normal_force_vec = quiver3(x_t(1), y_t(1), z_t(1), N_dir(1,1), N_dir(2,1), N_dir(3,1), 5, 'b', 'LineWidth', 2);
+centripetal_force_vec = quiver3(x_t(1), y_t(1), z_t(1), Fc_dir(1,1), Fc_dir(2,1), Fc_dir(3,1), 5, 'r', 'LineWidth', 2);
+
+%% Create Force vs. Distance Plot Figure
+figure(2);
+hForce = plot(s_track, G_force, 'b-', 'LineWidth', 2);
+hold on;
+% A marker to indicate the current position along the track
+hForceMarker = plot(s_track(1), G_force(1), 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r');
+xlabel('Distance along Track (m)');
+ylabel('Normal Force (G)');
+title('Normal Force vs. Distance along Track');
+grid on;
+
+%% Animation Loop
+min_pause = 0.002;
+max_pause = 0.02;
+v_t_norm = v_t / max(v_t);  % normalized speed for pause adjustment
+
+for i = 1:length(G_force)
+    % Update the train's position and G-force text
+    set(moving_point, 'XData', x_t(i), 'YData', y_t(i), 'ZData', z_t(i));
+    set(g_text, 'Position', [x_t(i), y_t(i), z_t(i)+2], 'String', sprintf('G: %.2f', G_force(i)));
+    
+    % Update force vectors so they follow the train
+    set(normal_force_vec, 'XData', x_t(i), 'YData', y_t(i), 'ZData', z_t(i), ...
+                          'UData', N_dir(1,i), 'VData', N_dir(2,i), 'WData', N_dir(3,i));
+    set(centripetal_force_vec, 'XData', x_t(i), 'YData', y_t(i), 'ZData', z_t(i), ...
+                               'UData', Fc_dir(1,i), 'VData', Fc_dir(2,i), 'WData', Fc_dir(3,i));
+    
+    % Update marker on the Force vs. Distance plot
+    set(hForceMarker, 'XData', s_track(i), 'YData', G_force(i));
+    
+    % Pause duration varies with speed
+    pause_time = max_pause - (max_pause - min_pause) * v_t_norm(i);
+    pause(pause_time);
+end
+hold off;
+
+%% Function: computeGForces
+function [s_track, G_force, x_t, y_t, z_t, v_t, N_dir, Fc_dir] = computeGForces(r_func, h_init, num_points, time_vector, beta_vector)
+    g = 9.81;
+    %% 1. Compute Track Positions and Speed (Using Energy Conservation)
+    r_t = r_func(time_vector);
+    x_t = r_t(1, :);
+    y_t = r_t(2, :);
+    z_t = r_t(3, :);
+    
+    % Speed from energy: v = sqrt(2*g*(h0 - z))
+    v_t = sqrt(2 * g * (h_init - z_t));
+    
+    %% 2. Compute Finite Differences to Obtain the Unit Tangent T
+    dt = diff(time_vector);
+    dx_dt = diff(x_t) ./ dt;
+    dy_dt = diff(y_t) ./ dt;
+    dz_dt = diff(z_t) ./ dt;
+    v_vec = [dx_dt; dy_dt; dz_dt];  % 3 x (n-1)
+    
+    % Differential arc length and cumulative distance (s_track)
+    ds = sqrt(dx_dt.^2 + dy_dt.^2 + dz_dt.^2);
+    s_track = cumtrapz(time_vector(1:end-1), ds);
+    
+    % Unit tangent vector T (n-1 points)
+    T = v_vec ./ vecnorm(v_vec);
+    nT = size(T,2);
+    
+    %% 3. Compute Curvature and the Curvature Normal (n_curv)
+    % Approximate dT/ds with central differences:
+    dT_ds = zeros(3, nT);
+    for i = 2:nT-1
+        ds_local = s_track(i+1) - s_track(i-1);
+        dT_ds(:, i) = (T(:, i+1) - T(:, i-1)) / ds_local;
+    end
+    % Endpoints: forward/backward differences
+    dT_ds(:,1) = (T(:,2) - T(:,1)) / (s_track(2) - s_track(1));
+    dT_ds(:, end) = (T(:, end) - T(:, end-1)) / (s_track(end) - s_track(end-1));
+    
+    curvature = vecnorm(dT_ds);  % κ = ||dT/ds||
+    n_curv = zeros(size(T));
+    for i = 1:nT
+        if curvature(i) > 1e-6
+            n_curv(:, i) = dT_ds(:, i) / curvature(i);
+        else
+            n_curv(:, i) = [0; 0; 0];
+        end
+    end
+    % For a curved section, the centripetal force points in the direction n_curv.
+    Fc_dir = n_curv;
+    
+    %% 4. Compute the Track’s Surface (Reaction) Normal with Banking
+    % (a) Compute the “unbanked” normal, N0, as the projection of vertical k = [0;0;1]
+    %     onto the plane perpendicular to T.
+    k = [0; 0; 1];
+    N0 = zeros(size(T));
+    for i = 1:nT
+        proj = k - dot(k, T(:, i)) * T(:, i);
+        if norm(proj) < 1e-6
+            proj = [1; 0; 0];  % fallback if T is vertical
+        end
+        N0(:, i) = proj / norm(proj);
+    end
+    
+    % (b) Instead of using a default lateral vector (via cross products), we now use the
+    %     curvature direction to “bank into the curve.”
+    % Create an orthonormal basis in the plane perpendicular to T:
+    %   e1 = N0 (the unbanked normal)
+    %   e2 = the projection of n_curv onto that plane (or a default if curvature is zero)
+    N_dir = zeros(size(T));
+    beta = deg2rad(beta_vector(1:nT));  % bank angle (radians) for each segment
+    for i = 1:nT
+        e1 = N0(:, i);
+        if norm(n_curv(:, i)) > 1e-6
+            % Project n_curv onto the plane perpendicular to T (it should already be)
+            e2 = n_curv(:, i);
+            % Remove any component along e1:
+            e2 = e2 - dot(e2, e1) * e1;
+            if norm(e2) > 1e-6
+                e2 = e2 / norm(e2);
+            else
+                % If e2 vanishes, use a default lateral direction:
+                e2 = -cross(T(:, i), e1);
+                if norm(e2) > 1e-6, e2 = e2 / norm(e2); end
+            end
+        else
+            % If no curvature, choose a default lateral direction:
+            e2 = -cross(T(:, i), e1);
+            if norm(e2) > 1e-6, e2 = e2 / norm(e2); end
+        end
+        % Rotate the unbanked normal e1 toward e2 by beta:
+        N_dir(:, i) = e1 * cos(beta(i)) + e2 * sin(beta(i));
+    end
+    
+    %% 5. Compute the Required Normal Acceleration and G-Force
+    % The reaction force must supply the centripetal acceleration plus counteract the
+    % component of gravity normal to the track.
+    v_seg = (v_t(1:end-1) + v_t(2:end)) / 2;  % average speed for each segment (nT points)
+    a_c = v_seg.^2 .* curvature;              % centripetal acceleration magnitude
+    
+    g_vec = [0; 0; -g];  % gravity (points downward)
+    g_comp = zeros(1, nT);
+    for i = 1:nT
+        % Projection of gravity along the (banked) normal direction:
+        g_comp(i) = -dot(g_vec, N_dir(:, i));
+    end
+    
+    a_N = a_c + g_comp;
+    G_force = a_N / g;
+    
+    %% 6. Pad Outputs to Match the Original Number of Points
+    N_dir = [N_dir, N_dir(:, end)];
+    Fc_dir = [Fc_dir, Fc_dir(:, end)];
+    G_force = [G_force, G_force(end)];
+    s_track = [s_track, s_track(end)];
+end
