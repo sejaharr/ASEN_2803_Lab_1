@@ -74,10 +74,11 @@ function r = compTrack(t, T1, T2, T3, T3p, T4, theta0, k_loop, g, h_init)
         r1p = [-12*sin(T1); 12*cos(T1); -5/(2*pi)];
         
         % Loop start target at theta0
-        r2 = [10*sin(theta0)+12; 0; h_init - 10*cos(theta0)];
+        r2 = [10*sin(theta0)+50; 0; h_init - 10*cos(theta0)];
         r2p_theta = [10*cos(theta0); 0; 10*sin(theta0)];
         r2p = k_loop * r2p_theta;
-        a0 = r1; a1 = L * r1p;
+        a0 = r1; 
+        a1 = L * r1p;
         D = r2 - r1 - a1;
         a3 = L * r2p - a1 - 2*D;
         a2 = D - a3;
@@ -86,7 +87,7 @@ function r = compTrack(t, T1, T2, T3, T3p, T4, theta0, k_loop, g, h_init)
     elseif t < T3
         % Segment 3: Loop
         theta = theta0 + (t - T2)*k_loop;
-        r = [10*sin(theta)+12; 0; h_init - 10*cos(theta)];
+        r = [10*sin(theta)+50; 0; h_init - 10*cos(theta)];
     
     elseif t < T3p
         % Segment 4: Transition from loop to projectile
@@ -95,11 +96,11 @@ function r = compTrack(t, T1, T2, T3, T3p, T4, theta0, k_loop, g, h_init)
         
         % Loop endpoint at T3
         theta_end = theta0 + (T3 - T2)*k_loop;
-        r3 = [10*sin(theta_end)+12; 0; h_init - 10*cos(theta_end)];
+        r3 = [10*sin(theta_end)+50; 0; h_init - 10*cos(theta_end)];
         r3p = k_loop * [10*cos(theta_end); 0; 10*sin(theta_end)];
         
         % Target for projectile start (adjust these offset values as needed)
-        r4 = r3 + [10; 0; 15];
+        r4 = r3 + [20; 0; 0];
         v4 = [10; 0; 15];
         a0 = r3; a1 = L2 * r3p;
         D = r4 - r3 - a1;
@@ -113,7 +114,7 @@ function r = compTrack(t, T1, T2, T3, T3p, T4, theta0, k_loop, g, h_init)
         
         % Starting point and velocity from transition target
         theta_end = theta0 + (T3 - T2)*k_loop;
-        r4 = [10*sin(theta_end)+12; 0; h_init - 10*cos(theta_end)] + [10; 0; 15];
+        r4 = [10*sin(theta_end)+50; 0; h_init - 10*cos(theta_end)] + [10; 0; 15];
         v4 = [10; 0; 15];
         r = r4 + v4*t_par + [0; 0; -0.5*g*(t_par.^2)];
     end
@@ -202,4 +203,3 @@ function [s_track, G_force, x_t, y_t, z_t, v_t, N_dir, Fc_dir] = computeGForces(
     G_force = [G_force, G_force(end)];
     s_track = [s_track, s_track(end)];
 end
-
