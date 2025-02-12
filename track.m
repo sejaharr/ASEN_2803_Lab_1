@@ -11,8 +11,7 @@ trans_1_end = 30;
 trans_2_end = 10*pi;
 lower_bound_t_trans_2 = -1*radius_loop*sin(5*pi/4);
 theta_i_parab = pi/4;
-theta_f_parab = pi/4;
-t_final_parab =3.445;%got this value experimentally
+t_final_parab =5.5;%got this value experimentally
 g = 9.81;
 arc_length_segments = zeros(7);
 %% PLane at z =125 for debugging 
@@ -102,7 +101,7 @@ end_trans_2.y = -1*trans_2_end+end_trans_1.y;
 first_term = tan(theta_i_parab)*t_parab;
 v_o_parab = sqrt(2*g*(initial_height-end_trans_2.z));
 v_o_z = v_o_parab*sin(theta_i_parab);
-v_o_y = v_o_parab*cos(theta_f_parab);
+v_o_y = v_o_parab*cos(theta_i_parab);
 z_parab = v_o_z*t_parab-0.5*g*t_parab.^2+end_trans_2.z;
 x_parab = end_trans_2.x*ones(size(t_parab));
 y_parab = -1*v_o_y*t_parab+end_trans_2.y;
@@ -117,17 +116,20 @@ ds_parab = sqrt(dx_parab.^2 + dy_parab.^2 + dz_parab.^2); % Small segment length
 arc_length_segments(5) = sum(ds_parab); % Sum of segment lengths
 
 %% Graphing Transition 3
-%{
+
 end_parab.z = v_o_z*(t_final_parab)-0.5*g*(t_final_parab).^2+end_trans_2.z;
 end_parab.x = max(x_parab);
 end_parab.y = -1*v_o_y*t_final_parab+end_trans_2.y;
-radius_trans_3 = abs(end_parab.z)*4;
-t_trans_3 = 7*pi/4:pi/64:2*pi;
-y_trans_3 = -1*(radius_trans_3*sin(t_trans_3))+end_parab.y;
-z_trans_3 = -1*(radius_trans_3*cos(t_trans_3))+radius_trans_3;
+d_f_parab = (v_o_y-g*(t_final_parab))/v_o_z;
+theta_f_parab = atan(abs(d_f_parab));
+radius_trans_3 = (-1*end_parab.z)/(cos(theta_f_parab)-1);
+delta_y = radius_trans_3*sin(theta_f_parab);
+t_trans_3 = 0:0.025:theta_f_parab;
 x_trans_3 = end_parab.x*ones(size(t_trans_3));
+y_trans_3 = radius_trans_3*sin(t_trans_3)+end_parab.y-delta_y;
+z_trans_3 = -1*radius_trans_3*cos(t_trans_3)+(radius_trans_3+1);
 plot3(x_trans_3,y_trans_3,z_trans_3);
-%}
+
 %% Finding Final Arc Length
 arc_length = max(sum(arc_length_segments));
 
@@ -137,3 +139,5 @@ ylabel("y axis");
 zlabel("z axis");
 view(3)
 grid on
+
+axis equal
