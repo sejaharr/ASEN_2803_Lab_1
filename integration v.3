@@ -1,0 +1,291 @@
+%% Composite Track Simulation: Kinematics and G Force Calculation
+clear; clc; close all;
+
+g = 9.81;          % gravitational acceleration (m/s^2)
+h_init = 125;      % initial height (m)
+n = 2000;          % number of sample points
+
+% Section time boundaries (adjust these to space out sections)
+T1     = 3*pi;     % End of helix (increase T1 to extend helix)
+Delta1 = 3;        % Duration of helix→loop transition
+T2     = T1 + Delta1;  
+T_loop = 2*pi;     % Duration of loop
+T3     = T2 + T_loop;  
+Delta2 = 5;        % Duration of loop→projectile transition
+T3p    = T3 + Delta2;
+T_parab = 4;       % Duration of projectile (parabolic) segment
+T4     = T3p + T_parab;
+Delta3 = 4;        % Transition duration from parabola to braking
+T4p    = T4 + Delta3; % Start of the braking section
+T_brake = 5;       % Duration of the braking section
+T5     = T4p + T_brake; % End of braking section
+
+BrakeOffset = 100;
+
+theta0 = pi/6;     % Starting loop parameter (radians)
+k_loop = 1;        % Loop parameter rate
+
+% Create simulation time vector
+t_values = linspace(0, T5, n);
+
+% Composite track function (scalar input)
+compositeTrack = @(t) compTrack(t, T1, T2, T3, T3p, T4, T4p, T5, theta0, k_loop, g, h_init);
+
+% Evaluate the track at each time (r_all is 3 x n)
+r_cell = arrayfun(@(tt) compositeTrack(tt), t_values, 'UniformOutput', false);
+r_all = cell2mat(r_cell);
+x_t = r_all(1,:);
+y_t = r_all(2,:);
+z_t = r_all(3,:);
+
+% Bank angle (in degrees)
+beta_values = 10 * ones(size(t_values));
+
+% Compute kinematics: arc length, curvature, positions, velocity, and direction vectors.
+% (computeGForces has been modified to remove any force calculations.)
+[s_track, curvature, x_t, y_t, z_t, v_t, N_dir, Fc_dir] = computeGForces(compositeTrack, h_init, n, t_values, beta_values);
+
+% Compute G force for each time using the new gforce function (which remains unchanged)
+Gforce_all = zeros(3, length(t_values));
+for i = 1:length(t_values)
+    Gforce_all(:, i) = gforce(t_values(i), T1, T2, T3, T3p, T4, T4p, theta0, k_loop, v_t(i), g);
+end
+
+% Plot Arc Length vs. Time
+figure;
+plot(t_values, s_track, 'b-', 'LineWidth', 2);
+xlabel('Time (s)'); ylabel('Arc Length (m)');
+title('Arc Length vs. Time');
+grid on;
+
+% Plot Velocity vs. Time
+figure;
+plot(t_values, v_t, 'r-', 'LineWidth', 2);
+xlabel('Time (s)'); ylabel('Velocity (m/s)');
+title('Velocity vs. Time');
+grid on;
+
+% Plot 3D track for visual reference
+figure;
+plot3(x_t, y_t, z_t, 'k-', 'LineWidth', 2);
+xlabel('X (m)'); ylabel('Y (m)'); zlabel('Z (m)');
+title('Composite 3D Track');
+axis equal; grid on; rotate3d on;
+
+% Plot G Force vs. Arc Length (example: plotting the upward component)
+figure;
+plot(s_track, Gforce_all(2,:), 'm-', 'LineWidth', 2);
+xlabel('Arc Length (m)'); ylabel('Upward G Force (G)');
+title('Upward G Force vs. Arc Length');
+grid on;
+
+% compTrack: Composite track function (unchanged)
+function r = compTrack(t, T1, T2, T3, T3p, T4, T4p, T5, theta0, k_loop, g, h_init)
+    
+theta_end = theta0 + (T3 - T2) * k_loop;
+    
+    r4 = [10 * sin(theta_end) + 35; 0; h_init - 10 * cos(theta_end)] + [20; 0; 15];
+    v4 = [10; 0; 15];
+    t_par_final = T4 - T3p;
+    r4_end = r4 + v4 * t_par_final + [0; 0; -0.5 * g * (t_par_final^2)];
+    v4_end = v4 + [0; 0; -g * t_par_final];
+    
+    if t < T1
+        % Segment 1: Helix (banked turn)
+        r = [12*cos(t); 12*sin(t); h_init - (5/(2*pi))*t];
+    
+    elseif t < T2
+        % Segment 2: Transition from helix to loop
+        L = T2 - T1;
+        s_val = (t - T1) / L;
+        % Helix endpoint at T1 and its derivative
+        r1 = [12*cos(T1); 12*sin(T1); h_init - (5/(2*pi))*T1];
+        r1p = [-12*sin(T1); 12*cos(T1); -5/(2*pi)];
+        % Loop start target at theta0 and its derivative
+        r2 = [10*sin(theta0)+25; 0; h_init - 10*cos(theta0)];
+        r2p_theta = [10*cos(theta0); 0; 10*sin(theta0)];
+        r2p = k_loop * r2p_theta;
+        a0 = r1; 
+        a1 = L * r1p;
+        D = r2 - r1 - a1;
+        a3 = L * r2p - a1 - 2*D;
+        a2 = D - a3;
+        r = a0 + a1*s_val + a2*s_val^2 + a3*s_val^3;
+    
+    elseif t < T3
+        % Segment 3: Loop
+        theta = theta0 + (t - T2)*k_loop;
+        r = [10*sin(theta)+25; 0; h_init - 10*cos(theta)];
+    
+    elseif t < T3p
+        % Segment 4: Transition from loop to projectile
+        L2 = T3p - T3;
+        s_val2 = (t - T3) / L2;
+        theta_end = theta0 + (T3 - T2)*k_loop;
+        r3 = [10*sin(theta_end)+25; 0; h_init - 10*cos(theta_end)];
+        r3p = k_loop * [10*cos(theta_end); 0; 10*sin(theta_end)];
+        % Target for projectile start (offset adjusted as needed)
+        r4 = r3 + [20; 0; 0];
+        v4 = [10; 0; 15];
+        a0 = r3; a1 = L2 * r3p;
+        D = r4 - r3 - a1;
+        a3 = L2 * v4 - a1 - 2*D;
+        a2 = D - a3;
+        r = a0 + a1*s_val2 + a2*s_val2^2 + a3*s_val2^3;
+    
+    elseif t < T4
+        % Segment 5: Projectile (parabolic) motion
+        t_par = t - T3p;
+        theta_end = theta0 + (T3 - T2)*k_loop;
+        r4 = [10*sin(theta_end)+35; 0; h_init - 10*cos(theta_end)] + [20; 0; 15];
+        v4 = [10; 0; 15];
+        r = r4 + v4*t_par + [0; 0; -0.5*g*(t_par.^2)];
+    
+    elseif t < T4p
+        % Segment 6: Transition from parabolic motion to braking section
+        L3 = T4p - T4;
+        s_val3 = (t - T4) / L3;
+        t_par_final = T4 - T3p;
+        r4_end = r4 + v4 * t_par_final + [0; 0; -0.5 * g * (t_par_final^2)];
+        v4_end = v4 + [0; 0; -g * t_par_final];
+        r5 = [r4_end(1) + 100; 0; 0];  % target state for braking start
+        v5 = [max(v4_end(1), 5); 0; 0];
+        a0 = r4_end;
+        a1 = L3 * v4_end;
+        D = r5 - r4_end - a1;
+        a3 = L3 * v5 - a1 - 2 * D;
+        a2 = D - a3;
+        r = a0 + a1 * s_val3 + a2 * s_val3^2 + a3 * s_val3^3;
+    
+    else
+        % Segment 7: Braking section (constant deceleration)
+        t_brake = t - T4p;
+        a_brake = -max(v4_end(1), 5)/t_brake;  % Adjust deceleration as needed
+        r5 = [r4_end(1) + 100; 0; 0];
+        v5 = [max(v4_end(1), 5); 0; 0];
+        v_brake = max(0, v5(1) + a_brake * t_brake);
+        x_brake = r5(1) + v5(1) * t_brake + 0.5 * a_brake * t_brake^2;
+        r = [x_brake; 0; 0];
+    end
+end
+
+% computeGForces: Computes arc length, curvature, position, velocity, and the track s normal (N_dir) and centripetal (Fc_dir) direction vectors.
+function [s_track, curvature, x_t, y_t, z_t, v_t, N_dir, Fc_dir] = computeGForces(r_func, h_init, num_points, time_vector, beta_vector)
+    g = 9.81;
+    r_cell = arrayfun(@(tt) r_func(tt), time_vector, 'UniformOutput', false);
+    r_t = cell2mat(r_cell);
+    x_t = r_t(1,:);
+    y_t = r_t(2,:);
+    z_t = r_t(3,:);
+    
+    % Compute local speed using energy conservation: v = sqrt(2*g*(h_init - z))
+    v_t = sqrt(2 * g * (h_init - z_t));
+    dt = diff(time_vector);
+    dx_dt = diff(x_t)./dt;
+    dy_dt = diff(y_t)./dt;
+    dz_dt = diff(z_t)./dt;
+    v_vec = [dx_dt; dy_dt; dz_dt];
+    ds = sqrt(dx_dt.^2 + dy_dt.^2 + dz_dt.^2);
+    s_track = cumtrapz(time_vector(1:end-1), ds);
+    s_track = [s_track, s_track(end)]; % Pad to match length of time_vector
+    T = v_vec ./ vecnorm(v_vec);
+    nT = size(T,2);
+    dT_ds = zeros(3, nT);
+    
+    for i = 2:nT-1
+        ds_local = s_track(i+1)-s_track(i-1);
+        dT_ds(:,i) = (T(:,i+1)-T(:,i-1)) / ds_local;
+    end
+    
+    dT_ds(:,1) = (T(:,2)-T(:,1)) / (s_track(2)-s_track(1));
+    dT_ds(:,end) = (T(:,end)-T(:,end-1)) / (s_track(end)-s_track(end-1));
+    
+    curvature = vecnorm(dT_ds);
+    n_curv = zeros(size(T));
+    
+    for i = 1:nT
+        if curvature(i) > 1e-6
+            n_curv(:,i) = dT_ds(:,i) / curvature(i);
+        else
+            n_curv(:,i) = [0; 0; 0];
+        end
+    end
+    
+    Fc_dir = n_curv;
+    k = [0;0;1];
+    N0 = zeros(size(T));
+    
+    for i = 1:nT
+        proj = k - dot(k, T(:,i))*T(:,i);
+        if norm(proj) < 1e-6
+            proj = [1;0;0];
+        end
+        N0(:,i) = proj / norm(proj);
+    end
+   
+    N_dir = zeros(size(T));
+    beta = deg2rad(beta_vector(1:nT));
+    
+    for i = 1:nT
+        e1 = N0(:,i);
+        if norm(n_curv(:,i)) > 1e-6
+            e2 = n_curv(:,i) - dot(n_curv(:,i), e1)*e1;
+            if norm(e2) > 1e-6
+                e2 = e2 / norm(e2);
+            else
+                e2 = -cross(T(:,i), e1); e2 = e2 / norm(e2);
+            end
+        else
+            e2 = -cross(T(:,i), e1); e2 = e2 / norm(e2);
+        end
+        N_dir(:,i) = e1*cos(beta(i)) + e2*sin(beta(i));
+    end
+    
+    % Pad N_dir and Fc_dir to match length
+    N_dir = [N_dir, N_dir(:,end)];
+    Fc_dir = [Fc_dir, Fc_dir(:,end)];
+
+end
+
+% This function returns a 3x1 vector of G-forces [fb; ud; lr] for a single time value t.
+function G_force = gforce(t, T1, T2, T3, T3p, T4, T4p, theta0, k_loop, v, g)
+    if t < T1
+        % Segment 1: Helix
+        fb = 0;
+        ud = 1 / cos(theta0);  % Example formula
+        lr = tan(theta0);
+    elseif t < T2
+        % Segment 2: Transition from helix to loop
+        fb = 0;
+        ud = 1;  % Example value
+        lr = 0;
+    elseif t < T3
+        % Segment 3: Loop
+        theta = theta0 + (t - T2) * k_loop;
+        fb = 0;
+        ud = tan(theta);
+        lr = (v^2) / (g * 21);  % Using r = 21 m as an example
+    elseif t < T3p
+        % Segment 4: Transition from loop to parabola
+        theta_end = theta0 + (T3 - T2) * k_loop;
+        fb = 0;
+        ud = tan(theta_end);
+        lr = (v^2) / (g * 21);
+    elseif t < T4
+        % Segment 5: Parabola
+        fb = 0;
+        ud = 0;
+        lr = 0;
+    elseif t < T4p
+        % Segment 6: Transition from parabola to braking
+        fb = 0;
+        ud = 0;
+        lr = 0;
+    else
+        % Segment 7: Braking
+        fb = 0;
+        ud = 0;
+        lr = 0;
+    end
+    G_force = [fb; ud; lr];
+end
