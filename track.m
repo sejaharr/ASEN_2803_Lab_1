@@ -31,7 +31,11 @@ t_helix = 0:pi/32:(2*pi)*n;
 x=radius_helix*cos(t_helix);
 y=radius_helix*sin(t_helix);
 z=-c*t_helix+initial_height;
-plot3(x,y,z);
+V = sqrt(2 * g * (125 - z));
+scatter3(x, y, z, 20, V, 'filled'); 
+colormap(jet);
+colorbar; 
+ 
 
 %% Computing Arc Length of Helix
 dx = diff(x);
@@ -50,7 +54,10 @@ t_trans_1 = 0:1:trans_1_end;
 x_trans_1 = end_helix.x*ones(size(t_trans_1));
 z_trans_1 = end_helix.z*ones(size(t_trans_1));
 y_trans_1 = -1*t_trans_1+end_helix.y;
-plot3(x_trans_1,y_trans_1,z_trans_1);
+V = sqrt(2 * g * (125 - z_trans_1));
+scatter3(x_trans_1, y_trans_1, z_trans_1, 20, V, 'filled'); 
+colormap(jet);
+colorbar; 
 
 %% Arc Length Transition 1
 
@@ -67,7 +74,10 @@ t_loop = 0:pi/32:(2*pi)+(5*pi/4);
 x_loop = end_trans_1.x*ones(size(t_loop));
 y_loop = -1*radius_loop*sin(t_loop)+end_trans_1.y;
 z_loop = -1*radius_loop*cos(t_loop)+h_center;
-plot3(x_loop,y_loop,z_loop);
+V = sqrt(2 * g * (125 - z_loop));
+scatter3(x_loop, y_loop, z_loop, 20, V, 'filled'); 
+colormap(jet);
+colorbar; 
 
 %% Arc Length Loop
 
@@ -82,19 +92,22 @@ t_trans_2 = lower_bound_t_trans_2:pi/32:trans_2_end;
 x_trans_2 = end_loop.x*ones(size(t_trans_2));
 y_trans_2 = -1*t_trans_2+end_trans_1.y;
 z_trans_2 = t_trans_2-radius_loop*sqrt(2)+h_center;
-plot3(x_trans_2,y_trans_2,z_trans_2);
+V = sqrt(2 * g * (125 - z_trans_2));
+scatter3(x_trans_2, y_trans_2, z_trans_2, 20, V, 'filled'); 
+colormap(jet);
+colorbar; 
 
 %% Arc Length Transition 2
 
 dx2 = diff(x_trans_2);
 dz2 = diff(z_trans_2);
 dy2 = diff(y_trans_2);
-ds2 = sqrt(dx2.^2 + dy2.^2 + dz2.^2); % Small segment lengths
-arc_length_segments(4) = sum(ds2); % Sum of segment lengths
+ds2 = sqrt(dx2.^2 + dy2.^2 + dz2.^2); 
+arc_length_segments(4) = sum(ds2); 
 
 %% Graphing zero g parabola
 
-t_parab = 0:0.1:t_final_parab;
+t_parab = 0:0.001:t_final_parab;
 end_trans_2.x = end_loop.x;
 end_trans_2.z = trans_2_end-radius_loop*sqrt(2)+h_center;
 end_trans_2.y = -1*trans_2_end+end_trans_1.y;
@@ -105,7 +118,10 @@ v_o_y = v_o_parab*cos(theta_i_parab);
 z_parab = v_o_z*t_parab-0.5*g*t_parab.^2+end_trans_2.z;
 x_parab = end_trans_2.x*ones(size(t_parab));
 y_parab = -1*v_o_y*t_parab+end_trans_2.y;
-plot3(x_parab,y_parab,z_parab);
+V = sqrt(2 * g * (125 - z_parab));
+scatter3(x_parab, y_parab, z_parab, 20, V, 'filled'); 
+colormap(jet);
+colorbar; 
 
 %% Arc Length Zero G Parabola 
 
@@ -124,11 +140,24 @@ d_f_parab = (v_o_y-g*(t_final_parab))/v_o_z;
 theta_f_parab = atan(abs(d_f_parab));
 radius_trans_3 = (-1*end_parab.z)/(cos(theta_f_parab)-1);
 delta_y = radius_trans_3*sin(theta_f_parab);
-t_trans_3 = 0:0.025:theta_f_parab;
+t_trans_3 = 0:0.005:theta_f_parab;
 x_trans_3 = end_parab.x*ones(size(t_trans_3));
 y_trans_3 = radius_trans_3*sin(t_trans_3)+end_parab.y-delta_y;
 z_trans_3 = -1*radius_trans_3*cos(t_trans_3)+(radius_trans_3+1);
-plot3(x_trans_3,y_trans_3,z_trans_3);
+V = sqrt(2 * g * (125 - z_trans_3));
+scatter3(x_trans_3, y_trans_3, z_trans_3, 20, V, 'filled'); 
+colormap(jet);
+colorbar; 
+
+%% Arc Length Transition 3
+
+arc_length(6) = pi*radius_trans_3*(theta_f_parab);
+
+%% Graphing Braking Section
+
+end_trans_3.z = -1*radius_trans_3*cos(theta_f_parab)+(radius_trans_3);
+end_trans_3.y = radius_trans_3*sin(theta_f_parab)+end_parab.y-delta_y;
+end_trans_3.x = max(x_trans_3);
 
 %% Finding Final Arc Length
 arc_length = max(sum(arc_length_segments));
@@ -139,5 +168,4 @@ ylabel("y axis");
 zlabel("z axis");
 view(3)
 grid on
-
 axis equal
