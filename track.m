@@ -3,16 +3,16 @@ figure()
 hold on
 %% Constants
 
-radius_helix = 15;
-n = 4.5;
+radius_helix = 20;%15;
+n = 3.5;%4.5;
 initial_height = 125;
 c=1.5;
-radius_loop = 20;
-trans_1_end = 35;
+radius_loop = 16;%20;
+trans_1_end = 40;%35;
 trans_2_end = 10*pi;
 lower_bound_t_trans_2 = -1*radius_loop*sin(5*pi/4);
 theta_i_parab = pi/4;
-t_final_parab =5.5;%got this value experimentally
+t_final_parab =4.9;%5.5;%got this value experimentally
 g = 9.81;
 arc_length_segments = zeros(8);
 banked_turn_2 = 1;% one means do the optional banked turn
@@ -222,7 +222,6 @@ track_lengths_trans_1 = 0:0.1:track_length_end;
 figure()
 hold on
 subplot(3,1,1);
-vertical_g_trans_1 = 1*ones(size(track_lengths_trans_1));
 yline(1, 'b-', 'LineWidth', 2)
 ylim([-2, 7]);
 xlim([0,arc_length_segments(2)]);
@@ -234,7 +233,6 @@ ylabel('G-Force');
 title('Vertical G-Force vs Arc Length For Transition 1');
 grid on
 subplot(3,1,2);
-lateral_g_trans_1 = zeros(size(track_lengths_trans_1));
 yline(0, 'b-', 'LineWidth', 2)
 xlabel('Arc Length (m)');
 ylabel('G-Force');
@@ -246,7 +244,6 @@ legend("Lateral G force as a function of S", "Max left G", "Max right G", "Locat
 title('Lateral G-Force vs Arc Length');
 grid on
 subplot(3,1,3);
-fb_g_trans_1 = zeros(size(track_lengths_trans_1));
 yline(0, 'b-', 'LineWidth', 2)
 xlabel('Arc Length (m)');
 ylabel('G-Force (Foward/Backward)');
@@ -298,10 +295,11 @@ xlim([0,arc_length_segments(3)]);
 legend("Tangential G force as a function of S", "Max Forward G", "Max Backward G", "Location", "northeast");
 title('Tangential G-Force vs Arc Length For Loop');
 grid on
+
 %% G(s) Transition 2 (line at slope 45 degrees)
 
 %% G(s) Parabola
-track_lengths_parab = 0:0.1:arc_length_segments(5)-arc_length_segments(4);
+track_lengths_parab = 0:0.1:arc_length_segments(5);
 figure()
 hold on
 subplot(3,1,1);
@@ -313,7 +311,8 @@ yline(-1, 'm--', 'LineWidth', 2);
 legend("Vertical G force as a function of S", "Max vertical G", "Max downward G", "Location", "northeast");
 xlabel('Arc Length (m)');
 ylabel('G-Force');
-title('Vertical G-Force vs Arc Length Parabola');
+xlim([0,arc_length_segments(5)]);
+title('Vertical G-Force vs Arc Length For Parabola');
 grid on
 subplot(3,1,2);
 lateral_g_trans_1 = zeros(size(track_lengths_parab));
@@ -323,6 +322,7 @@ ylabel('G-Force');
 yline(-3, 'r--', 'LineWidth', 2);
 yline(3, 'm--', 'LineWidth', 2);
 ylim([-4, 4]);
+xlim([0,arc_length_segments(5)]);
 legend("Lateral G force as a function of S", "Max left G", "Max right G", "Location", "northeast");
 title('Lateral G-Force vs Arc Length For Parabola');
 grid on
@@ -332,6 +332,7 @@ yline(0, 'b-', 'LineWidth', 2)
 xlabel('Arc Length (m)');
 ylabel('G-Force (Foward/Backward)');
 yline(5, 'r--', 'LineWidth', 2);
+xlim([0,arc_length_segments(5)]);
 yline(-4, 'm--', 'LineWidth', 2);
 ylim([-5, 6]);
 legend("Tangential G force as a function of S", "Max Forward G", "Max Backward G", "Location", "northeast");
@@ -339,6 +340,13 @@ title('Tangential G-Force vs Arc Length For Parabola')
 grid on
 
 %% G(s) Transition 3 (part of a circle)
+figure()
+hold on
+height_at_bottom_trans_3 = end_trans_3.z;
+track_lengths_trans_3 = 0:0.1:arc_length_segments(6);
+theor_tack_at_start = theta_f_parab*pi*radius_trans_3;
+vertical_g_trans_3 = ((250-height_at_bottom_trans_3)/radius_trans_3)+3*cos((theor_tack_at_start+track_lengths_trans_3)/radius_trans_3)-2;
+plot(track_lengths_trans_3,vertical_g_trans_3);
 
 %% G(s) Banked Turn
 
