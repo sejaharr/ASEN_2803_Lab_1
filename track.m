@@ -2,6 +2,7 @@ clear;clc;close all;
 figure()
 hold on
 %% Constants
+
 radius_helix = 10;
 n = 5.5;
 initial_height = 125;
@@ -13,7 +14,12 @@ lower_bound_t_trans_2 = -1*radius_loop*sin(5*pi/4);
 theta_i_parab = pi/4;
 t_final_parab =5.5;%got this value experimentally
 g = 9.81;
-arc_length_segments = zeros(7);
+arc_length_segments = zeros(8);
+banked_turn_2 = 1;% one means do the optional banked turn
+radius_opt_banked_turn = 50;
+length_of_breaking_section = 150;
+
+
 %% PLane at z =125 for debugging 
 %{
 % Define x and y ranges
@@ -36,7 +42,6 @@ scatter3(x, y, z, 20, V, 'filled');
 colormap(jet);
 colorbar; 
  
-
 %% Computing Arc Length of Helix
 dx = diff(x);
 dy = diff(y);
@@ -151,14 +156,44 @@ colorbar;
 
 %% Arc Length Transition 3
 
-arc_length(6) = pi*radius_trans_3*(theta_f_parab);
+arc_length_segments(6) = pi*radius_trans_3*(theta_f_parab);
+
+%% Graphing Optional Banked Turn
+
+if banked_turn_2==1
+    end_trans_3.z = -1*radius_trans_3*cos(0)+(radius_trans_3);
+    end_trans_3.y = radius_trans_3*sin(0)+end_parab.y-delta_y;
+    end_trans_3.x = max(x_trans_3);
+    t_opt_banked_turn = pi/2:pi/256:3*pi/2;
+    z_opt_banked_turn = end_trans_3.z*ones(size(t_opt_banked_turn));
+    x_opt_banked_turn = radius_opt_banked_turn*sin(t_opt_banked_turn)+end_trans_3.x-radius_opt_banked_turn;
+    y_opt_banked_turn = radius_opt_banked_turn*cos(t_opt_banked_turn)+end_trans_3.y;
+    V = sqrt(2 * g * (125 - z_opt_banked_turn));
+    scatter3(x_opt_banked_turn, y_opt_banked_turn, z_opt_banked_turn, 20, V, 'filled'); 
+    colormap(jet);
+    colorbar;
+    arc_length_segments(7) = pi*radius_opt_banked_turn;
+end
 
 %% Graphing Braking Section
 
-end_trans_3.z = -1*radius_trans_3*cos(theta_f_parab)+(radius_trans_3);
-end_trans_3.y = radius_trans_3*sin(theta_f_parab)+end_parab.y-delta_y;
-end_trans_3.x = max(x_trans_3);
+velocity_at_start = sqrt(2*g*initial_height);
+acceleration = -1*velocity_at_start/length_of_breaking_section;
+t_braking_section = 0:length_of_breaking_section;
+if banked_turn_2 ==1
+    z_pos_braking = end_trans_3.z*ones(size(t_braking_section));
+    x_pos_braking = (radius_opt_banked_turn*sin(3*pi/2)+end_trans_3.x-radius_opt_banked_turn)*ones(size(t_braking_section));
+    y_pos_braking = radius_opt_banked_turn*cos(3*pi/2)+end_trans_3.y+t_braking_section;
+end
+V = velocity_at_start+acceleration*t_braking_section;
+v_end = velocity_at_start+acceleration*100;
+scatter3(x_pos_braking, y_pos_braking, z_pos_braking, 20, V, 'filled'); 
+colormap(jet);
+colorbar;
 
+%% Finding Arc Lenght Braking Section
+
+arc_length_segments(8) = length_of_breaking_section;
 %% Finding Final Arc Length
 arc_length = max(sum(arc_length_segments));
 
