@@ -159,11 +159,10 @@ colorbar;
 arc_length_segments(6) = pi*radius_trans_3*(theta_f_parab);
 
 %% Graphing Optional Banked Turn
-
+end_trans_3.z = -1*radius_trans_3*cos(0)+(radius_trans_3);
+end_trans_3.y = radius_trans_3*sin(0)+end_parab.y-delta_y;
+end_trans_3.x = max(x_trans_3);
 if banked_turn_2==1
-    end_trans_3.z = -1*radius_trans_3*cos(0)+(radius_trans_3);
-    end_trans_3.y = radius_trans_3*sin(0)+end_parab.y-delta_y;
-    end_trans_3.x = max(x_trans_3);
     t_opt_banked_turn = pi/2:pi/256:3*pi/2;
     z_opt_banked_turn = end_trans_3.z*ones(size(t_opt_banked_turn));
     x_opt_banked_turn = radius_opt_banked_turn*sin(t_opt_banked_turn)+end_trans_3.x-radius_opt_banked_turn;
@@ -184,6 +183,10 @@ if banked_turn_2 ==1
     z_pos_braking = end_trans_3.z*ones(size(t_braking_section));
     x_pos_braking = (radius_opt_banked_turn*sin(3*pi/2)+end_trans_3.x-radius_opt_banked_turn)*ones(size(t_braking_section));
     y_pos_braking = radius_opt_banked_turn*cos(3*pi/2)+end_trans_3.y+t_braking_section;
+else
+    z_pos_braking = end_trans_3.z*ones(size(t_braking_section));
+    x_pos_braking = end_trans_3.x*ones(size(t_braking_section));
+    y_pos_braking = end_trans_3.y-t_braking_section;
 end
 V = velocity_at_start+acceleration*t_braking_section;
 v_end = velocity_at_start+acceleration*100;
