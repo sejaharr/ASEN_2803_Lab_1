@@ -3,13 +3,13 @@ figure()
 hold on
 %% Constants
 
-radius_helix = 20;%15;
-n = 3.5;%4.5;
+radius_helix = 30;%20;%15;
+n = 2.5;%3.5;%4.5;
 initial_height = 125;
-c=1.5;
-radius_loop = 16;%20;
+c=1;%1.5;
+radius_loop = 7;%10;%16;%20;
 trans_1_end = 40;%35;
-trans_2_end = 10*pi;
+trans_2_end = 3*pi;
 lower_bound_t_trans_2 = -1*radius_loop*sin(5*pi/4);
 theta_i_parab = pi/4;
 t_final_parab =4.9;%5.5;%got this value experimentally
@@ -17,7 +17,7 @@ g = 9.81;
 arc_length_segments = zeros(8);
 banked_turn_2 = 1;% one means do the optional banked turn
 radius_opt_banked_turn = 50;
-length_of_breaking_section = 150;
+length_of_breaking_section = 30;
 
 %% PLane at z = 125 for debugging 
 %{
@@ -32,7 +32,7 @@ surf(x_debug, y_debug, z_debug, 'FaceAlpha', 0.5, 'EdgeColor', 'none'); % Semi-t
 %}
 %% Graphing Helix
 
-t_helix = 0:pi/32:(2*pi)*n;
+t_helix = 0:pi/128:(2*pi)*n;
 x=radius_helix*cos(t_helix);
 y=radius_helix*sin(t_helix);
 z=-c*t_helix+initial_height;
@@ -212,9 +212,6 @@ axis equal
 
 %% G(s) for Helix
 
-%track_length_start = 0;
-%track_length_end = arc_length_segments(1);
-
 %% G(s) Transition 1 (line)
 
 track_length_end = arc_length_segments(2);
@@ -304,7 +301,7 @@ figure()
 hold on
 subplot(3,1,1);
 vertical_g_trans_1 = 1*ones(size(track_lengths_parab));
-yline(1, 'b-', 'LineWidth', 2)
+yline(0, 'b-', 'LineWidth', 2)
 ylim([-2, 7]);
 yline(6, 'r--', 'LineWidth', 2);
 yline(-1, 'm--', 'LineWidth', 2);
@@ -349,6 +346,11 @@ vertical_g_trans_3 = ((250-height_at_bottom_trans_3)/radius_trans_3)+3*cos((theo
 plot(track_lengths_trans_3,vertical_g_trans_3);
 
 %% G(s) Banked Turn
+figure()
+hold on
+g_force_tangential = velocity_at_start^2/(2*g*length_of_breaking_section);
+yline(g_force_tangential);
+xlim([0,arc_length_segments(8)]);
 
 %% G(s) Braking Section
 
