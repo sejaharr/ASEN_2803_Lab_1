@@ -183,8 +183,8 @@ gData(3).title = 'Loop';
 track_lengths_trans_2 = track_lengths_loop(end):0.1:(track_lengths_loop(end)+arc_length_segments(4));
 gData(4).arc = track_lengths_trans_2;
 gData(4).vertical = ones(size(track_lengths_trans_2));
-gData(4).lateral = -ones(size(track_lengths_trans_2));
-gData(4).tangential = zeros(size(track_lengths_trans_2));
+gData(4).lateral = zeros(size(track_lengths_trans_2));
+gData(4).tangential = -ones(size(track_lengths_trans_2));
 gData(4).title = 'Transition 2';
 
 % Parabola
