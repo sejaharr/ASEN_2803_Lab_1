@@ -259,8 +259,7 @@ sgtitle("G-forces for Helix")
 
 %% G(s) Transition 1 (line)
 
-track_length_end = arc_length_segments(2);
-track_lengths_trans_1 = 0:0.1:track_length_end;
+track_lengths_trans_1 = track_lengths_helix(end):0.1:track_lengths_helix(end)+arc_length_segments(2);
 figure()
 hold on
 subplot(3,1,1);
@@ -303,7 +302,7 @@ sgtitle("G-forces for First Transition")
 
 %% G(s) Loop
 
-track_lengths_loop = 0:0.1:arc_length_segments(3);
+track_lengths_loop = track_lengths_trans_1(end):0.1:track_lengths_trans_1(end)+arc_length_segments(3);
 figure()
 max_gs_loop.vertical = ((250-2*end_trans_1.z)/radius_loop)+1;
 max_gs_loop.downward = abs(((250-2*end_trans_1.z)/radius_loop)-5);
@@ -348,7 +347,7 @@ sgtitle("G-forces for Loop")
 
 %% G(s) Transition 2 (line at slope 45 degrees)
 
-track_lengths_trans_2 = 0:0.1:arc_length_segments(4);
+track_lengths_trans_2 = track_lengths_loop(end):0.1:track_lengths_loop(end)+arc_length_segments(4);
 figure()
 hold on
 subplot(3,1,1);
@@ -389,7 +388,7 @@ sgtitle("G-forces for Second Transition")
 
 %% G(s) Parabola
 
-track_lengths_parab = 0:0.1:arc_length_segments(5);
+track_lengths_parab = track_lengths_trans_2(end):0.1:track_lengths_trans_2(end)+arc_length_segments(5);
 figure()
 hold on
 subplot(3,1,1);
@@ -432,7 +431,7 @@ sgtitle("G-forces for Parabola")
 figure()
 hold on
 height_at_bottom_trans_3 = end_trans_3.z;
-track_lengths_trans_3 = 0:0.1:arc_length_segments(6);
+track_lengths_trans_3 = track_lengths_parab(end):0.1:track_lengths_parab(end)+arc_length_segments(6);
 theor_tack_at_start = theta_f_parab*pi*radius_trans_3;
 vertical_g_trans_3 = ((250-height_at_bottom_trans_3)/radius_trans_3)+3*cos((theor_tack_at_start+track_lengths_trans_3)/radius_trans_3)-2;
 subplot(3,1,1);
@@ -474,7 +473,7 @@ sgtitle("G-forces for Third Transition")
 
 %% G(s) Braking Section
 
-track_lengths_brake = 0:0.1:arc_length_segments(8);
+track_lengths_brake = track_lengths_trans_3(end):0.1:track_lengths_trans_3(end)+arc_length_segments(8);
 figure()
 hold on
 subplot(3,1,1);
