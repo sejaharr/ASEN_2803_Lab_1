@@ -222,9 +222,8 @@ figure()
 hold on
 subplot(3,1,1);
 vertical_g_helix = 1*ones(size(track_lengths_helix));
-yline(1, 'b-', 'LineWidth', 2)
+plot(track_lengths_helix,vertical_g_helix,'b-',LineWidth=2)
 ylim([-2, 7]);
-xlim([0,arc_length_segments(1)]);
 yline(6, 'r--', 'LineWidth', 2);
 yline(-1, 'm--', 'LineWidth', 2);
 legend("Vertical G force as a function of S", "Max vertical G", "Max downward G", "Location", "northeast");
@@ -237,7 +236,6 @@ plot(track_lengths_helix,lateral_g_helix,'b-',LineWidth=2)
 xlabel('Arc Length (m)');
 ylabel('G-Force');
 yline(-3, 'r--', 'LineWidth', 2);
-xlim([0,arc_length_segments(1)]);
 yline(3, 'm--', 'LineWidth', 2);
 ylim([-4, 4]);
 legend("Lateral G force as a function of S", "Max left G", "Max right G", "Location", "northeast");
@@ -245,10 +243,9 @@ title('Lateral G-Force vs Arc Length');
 grid on
 subplot(3,1,3);
 fb_g_helix = zeros(size(track_lengths_helix));
-yline(0, 'b-', 'LineWidth', 2)
+plot(track_lengths_helix,fb_g_helix,'b-',LineWidth=2)
 xlabel('Arc Length (m)');
 ylabel('G-Force');
-xlim([0,arc_length_segments(1)]);
 yline(5, 'r--', 'LineWidth', 2);
 yline(-4, 'm--', 'LineWidth', 2);
 ylim([-5, 6]);
@@ -264,9 +261,8 @@ figure()
 hold on
 subplot(3,1,1);
 vertical_g_trans_1 = 1*ones(size(track_lengths_trans_1));
-yline(1, 'b-', 'LineWidth', 2)
+plot(track_lengths_trans_1,vertical_g_trans_1,'b-',LineWidth=2)
 ylim([-2, 7]);
-xlim([0,arc_length_segments(2)]);
 yline(6, 'r--', 'LineWidth', 2);
 yline(-1, 'm--', 'LineWidth', 2);
 legend("Vertical G force as a function of S", "Max vertical G", "Max downward G", "Location", "northeast");
@@ -276,11 +272,10 @@ title('Vertical G-Force vs Arc Length');
 grid on
 subplot(3,1,2);
 lateral_g_trans_1 = zeros(size(track_lengths_trans_1));
-yline(0, 'b-', 'LineWidth', 2)
+plot(track_lengths_trans_1,lateral_g_trans_1,'b-',LineWidth=2)
 xlabel('Arc Length (m)');
 ylabel('G-Force');
 yline(-3, 'r--', 'LineWidth', 2);
-xlim([0,arc_length_segments(2)]);
 yline(3, 'm--', 'LineWidth', 2);
 ylim([-4, 4]);
 legend("Lateral G force as a function of S", "Max left G", "Max right G", "Location", "northeast");
@@ -288,10 +283,9 @@ title('Lateral G-Force vs Arc Length');
 grid on
 subplot(3,1,3);
 fb_g_trans_1 = zeros(size(track_lengths_trans_1));
-yline(0, 'b-', 'LineWidth', 2)
+plot(track_lengths_trans_1,fb_g_trans_1,'b-',LineWidth=2)
 xlabel('Arc Length (m)');
 ylabel('G-Force');
-xlim([0,arc_length_segments(2)]);
 yline(5, 'r--', 'LineWidth', 2);
 yline(-4, 'm--', 'LineWidth', 2);
 ylim([-5, 6]);
@@ -304,42 +298,39 @@ sgtitle("G-forces for First Transition")
 
 track_lengths_loop = track_lengths_trans_1(end):0.1:track_lengths_trans_1(end)+arc_length_segments(3);
 figure()
+hold on
 max_gs_loop.vertical = ((250-2*end_trans_1.z)/radius_loop)+1;
 max_gs_loop.downward = abs(((250-2*end_trans_1.z)/radius_loop)-5);
-hold on
 subplot(3,1,1);
-vertical_g_loop = ((250-2*end_trans_1.z)/radius_loop)+3*cos((track_lengths_loop-track_lengths_trans_1(end))/radius_loop)-2;
-plot(track_lengths_loop,vertical_g_loop,'b-','LineWidth', 2);
+vertical_g_loop = ((250-2*end_trans_1.z)/radius_loop)+(3*cos((track_lengths_loop-track_lengths_trans_1(end))/radius_loop))-2;
+plot(track_lengths_loop,vertical_g_loop,'b-',LineWidth=2);
 yline(6, 'r--', 'LineWidth', 2);
 yline(-1, 'm--', 'LineWidth', 2);
 legend("Vertical G force as a function of S", "Max vertical G", "Max downward G", "Location", "northeast");
 ylim([-2,7]);
-xlim([0,arc_length_segments(3)]);
 xlabel('Arc Length (m)');
 ylabel('G-Force');
 title('Vertical G-Force vs Arc Length');
 grid on
 subplot(3,1,2);
 lateral_g_loop = zeros(size(track_lengths_loop));
-yline(0, 'b-', 'LineWidth', 2)
+plot(track_lengths_loop,lateral_g_loop,'b-',LineWidth=2);
 xlabel('Arc Length (m)');
 ylabel('G-Force');
 yline(-3, 'r--', 'LineWidth', 2);
 yline(3, 'm--', 'LineWidth', 2);
 ylim([-4, 4]);
-xlim([0,arc_length_segments(3)]);
 legend("Lateral G force as a function of S", "Max left G", "Max right G", "Location", "northeast");
 title('Lateral G-Force vs Arc Length');
 grid on
 subplot(3,1,3);
 fb_g_loop = zeros(size(track_lengths_loop));
-yline(0, 'b-', 'LineWidth', 2)
+plot(track_lengths_loop,fb_g_loop,'b-',LineWidth=2);
 xlabel('Arc Length (m)');
 ylabel('G-Force');
 yline(5, 'r--', 'LineWidth', 2);
 yline(-4, 'm--', 'LineWidth', 2);
 ylim([-5, 6]);
-xlim([0,arc_length_segments(3)]);
 legend("Tangential G force as a function of S", "Max Forward G", "Max Backward G", "Location", "northeast");
 title('Tangential G-Force vs Arc Length');
 grid on
@@ -352,7 +343,7 @@ figure()
 hold on
 subplot(3,1,1);
 vertical_g_trans_2 = ones(size(track_lengths_trans_2));
-yline(1, 'b-', 'LineWidth', 2)
+plot(track_lengths_trans_2,vertical_g_trans_2,'b-',LineWidth=2)
 ylim([-2, 7]);
 yline(6, 'r--', 'LineWidth', 2);
 yline(-1, 'm--', 'LineWidth', 2);
@@ -363,7 +354,7 @@ title('Vertical G-Force vs Arc Length');
 grid on
 subplot(3,1,2);
 lateral_g_trans_2 = -1*ones(size(track_lengths_trans_2));
-yline(-1, 'b-', 'LineWidth', 2)
+plot(track_lengths_trans_2,lateral_g_trans_2,'b-',LineWidth=2)
 xlabel('Arc Length (m)');
 ylabel('G-Force');
 yline(-3, 'r--', 'LineWidth', 2);
@@ -374,7 +365,7 @@ title('Lateral G-Force vs Arc Length');
 grid on
 subplot(3,1,3);
 fb_g_trans_2 = zeros(size(track_lengths_trans_2));
-yline(0, 'b-', 'LineWidth', 2)
+plot(track_lengths_trans_2,fb_g_trans_2,'b-',LineWidth=2)
 xlabel('Arc Length (m)');
 ylabel('G-Force');
 yline(5, 'r--', 'LineWidth', 2);
@@ -393,7 +384,7 @@ figure()
 hold on
 subplot(3,1,1);
 vertical_g_parab = zeros(size(track_lengths_parab));
-yline(0, 'b-', 'LineWidth', 2)
+plot(track_lengths_parab,vertical_g_parab,'b-',LineWidth=2)
 ylim([-2, 7]);
 yline(6, 'r--', 'LineWidth', 2);
 yline(-1, 'm--', 'LineWidth', 2);
@@ -404,7 +395,7 @@ title('Vertical G-Force vs Arc Length');
 grid on
 subplot(3,1,2);
 lateral_g_parab = zeros(size(track_lengths_parab));
-yline(0, 'b-', 'LineWidth', 2)
+plot(track_lengths_parab,lateral_g_parab,'b-',LineWidth=2)
 xlabel('Arc Length (m)');
 ylabel('G-Force');
 yline(-3, 'r--', 'LineWidth', 2);
@@ -415,7 +406,7 @@ title('Lateral G-Force vs Arc Length');
 grid on
 subplot(3,1,3);
 fb_g_parab = zeros(size(track_lengths_parab));
-yline(0, 'b-', 'LineWidth', 2)
+plot(track_lengths_parab,fb_g_parab,'b-',LineWidth=2)
 xlabel('Arc Length (m)');
 ylabel('G-Force');
 yline(5, 'r--', 'LineWidth', 2);
@@ -432,9 +423,9 @@ figure()
 hold on
 height_at_bottom_trans_3 = end_trans_3.z;
 track_lengths_trans_3 = track_lengths_parab(end):0.1:track_lengths_parab(end)+arc_length_segments(6);
-theta_f_parab = 2*pi-theta_f_parab;
+theta_f_parab = (2*pi)-theta_f_parab;
 theor_tack_at_start = theta_f_parab*radius_trans_3;
-vertical_g_trans_3 = ((250-height_at_bottom_trans_3)/radius_trans_3)+3*cos((track_lengths_trans_3-track_lengths_parab(end)+theor_tack_at_start)/radius_trans_3)-2;
+vertical_g_trans_3 = ((250-height_at_bottom_trans_3)/radius_trans_3)+3*cos((theor_tack_at_start+track_lengths_trans_3-track_lengths_parab(end))/radius_trans_3)-2;
 subplot(3,1,1);
 plot(track_lengths_trans_3,vertical_g_trans_3,'b-',LineWidth=2);
 ylim([-2, 7]);
@@ -447,7 +438,7 @@ title('Vertical G-Force vs Arc Length');
 grid on
 subplot(3,1,2);
 lateral_g_trans_3 = zeros(size(track_lengths_trans_3));
-yline(0, 'b-', 'LineWidth', 2)
+plot(track_lengths_trans_3,lateral_g_trans_3,'b-',LineWidth=2)
 xlabel('Arc Length (m)');
 ylabel('G-Force');
 yline(-3, 'r--', 'LineWidth', 2);
@@ -458,7 +449,7 @@ title('Lateral G-Force vs Arc Length');
 grid on
 subplot(3,1,3);
 fb_g_trans_3 = zeros(size(track_lengths_trans_3));
-yline(0, 'b-', 'LineWidth', 2)
+plot(track_lengths_trans_3,lateral_g_trans_3,'b-',LineWidth=2)
 xlabel('Arc Length (m)');
 ylabel('G-Force');
 yline(5, 'r--', 'LineWidth', 2);
@@ -479,7 +470,7 @@ figure()
 hold on
 subplot(3,1,1);
 vertical_g_brake = 1*ones(size(track_lengths_brake));
-yline(1, 'b-', 'LineWidth', 2)
+plot(track_lengths_brake,vertical_g_brake,'b-',LineWidth=2)
 ylim([-2, 7]);
 yline(6, 'r--', 'LineWidth', 2);
 yline(-1, 'm--', 'LineWidth', 2);
@@ -490,7 +481,7 @@ title('Vertical G-Force vs Arc Length');
 grid on
 subplot(3,1,2);
 lateral_g_brake = zeros(size(track_lengths_brake));
-yline(0, 'b-', 'LineWidth', 2)
+plot(track_lengths_brake,lateral_g_brake,'b-',LineWidth=2)
 xlabel('Arc Length (m)');
 ylabel('G-Force');
 yline(-3, 'r--', 'LineWidth', 2);
@@ -506,7 +497,7 @@ accel_brake = (velocity_at_start^2) / (2*arc_length_segments(8));
 coeff_friction = 0.4;
 fb_g_brake = (accel_brake / (coeff_friction * g))*ones(size(track_lengths_brake));
 
-yline(fb_g_brake, 'b-', 'LineWidth', 2)
+plot(track_lengths_brake,fb_g_brake,'b-',LineWidth=2)
 xlabel('Arc Length (m)');
 ylabel('G-Force');
 yline(5, 'r--', 'LineWidth', 2);
@@ -526,7 +517,6 @@ total_fb_g = [fb_g_helix,fb_g_trans_1,fb_g_loop,fb_g_trans_2,fb_g_parab,fb_g_tra
 total_track_length = [track_lengths_helix,track_lengths_trans_1,track_lengths_loop,track_lengths_trans_2,track_lengths_parab,track_lengths_trans_3,track_lengths_brake];
 
 figure()
-
 hold on
 subplot(3,1,1);
 plot(total_track_length,total_vertical_g,'b-',LineWidth=2)
@@ -538,7 +528,6 @@ xlabel('Arc Length (m)');
 ylabel('G-Force');
 title('Vertical G-Force vs Arc Length');
 grid on
-
 subplot(3,1,2);
 plot(total_track_length,total_lateral_g,'b-',LineWidth=2)
 xlabel('Arc Length (m)');
@@ -549,7 +538,6 @@ ylim([-4, 4]);
 legend("Lateral G force as a function of S", "Max left G", "Max right G", "Location", "northeast");
 title('Lateral G-Force vs Arc Length');
 grid on
-
 subplot(3,1,3);
 plot(total_track_length,total_fb_g,'b-',LineWidth=2)
 xlabel('Arc Length (m)');
